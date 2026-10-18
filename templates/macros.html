@@ -1,0 +1,25 @@
+{% macro trace(list) %}
+{% if list %}
+<details class="steps"><summary>What happened ({{ list|length }} steps)</summary>
+<ol>{% for s in list %}<li>{{ s }}</li>{% endfor %}</ol></details>
+{% endif %}
+{% endmacro %}
+
+{% macro card(p) %}
+<article class="card">
+  {% if p.image %}<img src="{{ p.image }}" alt="{{ p.title or 'Product' }}" loading="lazy">{% else %}<div class="noimg">No photo</div>{% endif %}
+  <h3>{{ p.title or '(untitled)' }}</h3>
+  <p class="meta">{{ [p.brand, p.store]|select|join(' at ') }}</p>
+  <p class="price">{% if p.price is not none %}{{ p.price }} {{ p.currency or '' }}{% else %}Price not shown{% endif %}</p>
+  {% if p.reason %}<p class="why"><b>Why:</b> {{ p.reason }}</p>{% endif %}
+  <div class="actions">
+    {% if p.url %}<a class="btn ghost" href="{{ p.url }}" target="_blank" rel="noopener">View at store</a>{% endif %}
+    {% if p.price is not none and (not p.currency or p.currency|upper == 'USD') %}
+    <form method="post" action="{{ url_for('pages.checkout') }}">
+      <input type="hidden" name="product_id" value="{{ p.id }}">
+      <button class="btn" type="submit">Pay with PayPal</button>
+    </form>
+    {% else %}<p class="meta">Checkout supports USD items only.</p>{% endif %}
+  </div>
+</article>
+{% endmacro %}

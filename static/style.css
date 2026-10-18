@@ -1,0 +1,73 @@
+/* Used AI help with designing for CSS and make it easier to compile and write. */
+
+:root{--black:#070907;--soot:#0e120e;--moss:#14241a;--green:#2d5a3a;--leaf:#5a8a62;--beige:#dccfae;--bone:#efe6cf;--grey:#8b8e86;--ash:#2c2f2a}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;color:var(--beige);font:17px/1.65 Georgia,'Times New Roman',serif;
+ background:radial-gradient(ellipse at 50% 0,#12200f 0,var(--black) 70%) fixed,
+ repeating-linear-gradient(115deg,transparent 0 46px,rgba(220,207,174,.03) 46px 47px),var(--black)}
+a{color:var(--beige)}
+:focus-visible{outline:3px solid var(--beige);outline-offset:3px}
+.skip{position:absolute;left:-999px}
+.skip:focus{left:8px;top:8px;background:var(--beige);color:var(--black);padding:8px 12px;z-index:9}
+
+/* header with dripping edge */
+header.site{position:sticky;top:0;z-index:5;background:var(--moss);border-bottom:3px solid var(--black);padding:10px 20px 0}
+header.site::after{content:"";position:absolute;left:0;right:0;top:100%;height:34px;background:var(--moss);pointer-events:none;
+ clip-path:polygon(0 0,100% 0,100% 20%,97% 20%,96% 85%,94.5% 20%,88% 20%,87% 55%,85.5% 20%,74% 20%,73% 100%,71.5% 20%,58% 20%,57% 60%,55.5% 20%,41% 20%,40% 90%,38.5% 20%,27% 20%,26% 50%,24.5% 20%,12% 20%,11% 75%,9.5% 20%,0 20%)}
+.brand{font:italic 700 1.3rem Georgia,serif;letter-spacing:.12em;text-transform:uppercase;color:var(--bone)}
+.brand span{display:inline-block;animation:flicker 5s infinite}
+@keyframes flicker{0%,92%,100%{opacity:1}94%{opacity:.5}96%{opacity:.9}98%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.brand span{animation:none}}
+nav{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+nav a{display:flex;flex-direction:column;padding:8px 20px;text-decoration:none;color:var(--beige);border-bottom:4px solid transparent}
+nav a small{color:var(--grey);font-style:italic;font-size:.78rem}
+nav a:hover,nav a:focus-visible,nav a[aria-current="page"]{background:var(--black);border-bottom-color:var(--beige)}
+nav a[aria-current="page"] b::after{content:" ●"}
+
+main{max-width:960px;margin:0 auto;padding:60px 20px 40px}
+h1,h2,h3{font-style:italic;text-transform:uppercase;letter-spacing:.06em;color:var(--bone)}
+h1{font-size:2rem;margin:0 0 6px;text-shadow:3px 3px 0 var(--green)}
+h2{font-size:1.2rem}
+.lead,.empty{color:var(--grey);max-width:62ch}
+
+/* forms and buttons */
+label{display:block;font-weight:700;margin-bottom:6px}
+textarea{width:100%;background:var(--soot);color:var(--bone);border:2px solid var(--grey);padding:10px;font:inherit;border-radius:0;margin-bottom:12px}
+.btn{display:inline-block;background:var(--beige);color:var(--black);border:0;padding:10px 20px;font:700 .9rem Georgia,serif;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;text-decoration:none;
+ clip-path:polygon(0 8%,4% 0,96% 6%,100% 0,98% 92%,100% 100%,3% 94%,0 100%)}
+.btn:hover,.btn:focus-visible{background:var(--leaf)}
+.btn.ghost{background:var(--ash);color:var(--beige)}
+.btn.ghost:hover,.btn.ghost:focus-visible{background:var(--green);color:var(--bone)}
+.row{display:flex;flex-wrap:wrap;gap:12px;margin:18px 0}
+
+/* status panels: state is shown by label AND style, never by colour alone */
+.panel{background:var(--soot);border:2px solid var(--grey);border-left-width:10px;padding:14px 18px;margin:18px 0}
+.panel.ok{border-color:var(--leaf)}
+.panel.bad{border-color:var(--beige);border-style:dashed;border-left-style:solid}
+.panel h2,.panel h3{margin:0 0 6px;font-size:1.05rem}
+.panel.ok h2::before,.panel.ok h3::before{content:"✔ "}
+.panel.bad h2::before,.panel.bad h3::before{content:"✖ "}
+.panel.idle h2::before,.panel.idle h3::before{content:"… "}
+.panel p{margin:4px 0}
+
+/* product cards with torn edges */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:22px;margin:22px 0}
+.card{background:var(--soot);border:2px solid var(--ash);padding:12px;display:flex;flex-direction:column;gap:6px;
+ clip-path:polygon(0 1.5%,3% 0,97% 1%,100% 0,99% 98.5%,100% 100%,2% 99%,0 100%)}
+.card:hover{border-color:var(--leaf)}
+.card img,.noimg{width:100%;height:170px;object-fit:contain;background:var(--black);filter:grayscale(.5) sepia(.25) contrast(1.05)}
+.noimg{display:grid;place-items:center;color:var(--grey)}
+.card h3{font-size:.95rem;margin:4px 0}
+.meta{color:var(--grey);font-size:.88rem;margin:0}
+.price{color:var(--bone);font-weight:700;margin:0}
+.why{font-size:.92rem;margin:0}
+.actions{margin-top:auto;display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding-top:8px}
+
+details.steps{margin:18px 0;border:1px solid var(--ash);padding:8px 14px;background:var(--soot)}
+details summary{cursor:pointer;font-weight:700}
+details ol{font:.86rem/1.7 ui-monospace,Consolas,monospace;color:var(--grey)}
+ul.plain{list-style:none;padding:0;margin:0}
+ul.plain li{padding:6px 0;border-bottom:1px solid var(--ash)}
+footer{border-top:3px double var(--ash);text-align:center;padding:22px;color:var(--grey);font-size:.9rem}
+@media (max-width:560px){body{font-size:16px}header.site{padding:8px 8px 0}nav a{padding:8px 12px}h1{font-size:1.6rem}}

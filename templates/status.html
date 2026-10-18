@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% from "macros.html" import trace with context %}
+{% block title %}Diagnostics{% endblock %}
+{% block content %}
+<h1>The autopsy</h1>
+<p class="lead">Check that every connection is alive. Run a test, and the result and every step appear below.</p>
+
+<h2>Keys on this server</h2>
+<ul class="plain">
+{% for name, ok in keys %}<li>{{ '✔ found' if ok else '✖ MISSING' }} | {{ name }}</li>{% endfor %}
+</ul>
+
+<h2>Run a test</h2>
+<div class="row">
+  {% for value, label in [('paypal','Test PayPal login'),('ai','Test the AI'),('search','Test product search')] %}
+  <form method="post" action="{{ url_for('pages.status') }}#result"><input type="hidden" name="check" value="{{ value }}"><button class="btn" type="submit">{{ label }}</button></form>
+  {% endfor %}
+</div>
+
+{% if check %}
+<section id="result" class="panel {{ 'ok' if check.ok else 'bad' }}">
+  <h2>{{ check.name }}: {{ 'WORKING' if check.ok else 'FAILED' }}</h2>
+  <p>{{ check.detail }}</p>
+</section>
+{{ trace(check.steps) }}
+{% endif %}
+{% endblock %}

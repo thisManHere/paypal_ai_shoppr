@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Orders{% endblock %}
+{% block head %}<meta http-equiv="refresh" content="15">{% endblock %}
+{% block content %}
+<h1>The ledger</h1>
+<p class="lead">Every order, and PayPal's own confirmations. This page reloads itself every 15 seconds. A webhook is PayPal calling your server directly, and it only counts if PayPal confirms the message is genuine.</p>
+<div class="row"><a class="btn" href="{{ url_for('pages.orders') }}">Reload now</a><a class="btn ghost" href="{{ url_for('pages.concierge') }}">Back to the hunt</a></div>
+
+<h2>Orders</h2>
+{% for o in orders %}
+<article class="panel {{ 'ok' if o.webhook_confirmed else 'idle' }}">
+  <h3>{{ o.title }}</h3>
+  <p>{{ o.amount }} USD | PayPal status: {{ o.status }} | Webhook: <b>{{ 'CONFIRMED' if o.webhook_confirmed else 'not yet' }}</b></p>
+  <p class="meta">Order {{ o.order_id }}</p>
+</article>
+{% else %}<p class="empty">No orders yet. Visit the Concierge and buy something.</p>{% endfor %}
+
+<h2>Messages from PayPal</h2>
+{% for e in events %}
+<article class="panel {{ 'ok' if e.verified else 'bad' }}">
+  <h3>{{ e.type }}</h3>
+  <p>{{ e.time }} | {{ 'VERIFIED' if e.verified else 'NOT VERIFIED' }}{% if e.note %} | {{ e.note }}{% endif %}</p>
+</article>
+{% else %}<p class="empty">Nothing received yet. Webhooks only arrive on your public Render address.</p>{% endfor %}
+{% endblock %}

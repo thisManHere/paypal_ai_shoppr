@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% from "macros.html" import trace with context %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<section class="panel {{ state }}">
+  <h2>{{ title }}</h2>
+  {% for line in lines %}<p>{{ line }}</p>{% endfor %}
+</section>
+<div class="row"><a class="btn" href="{{ url_for('pages.concierge') }}">Back to the hunt</a><a class="btn ghost" href="{{ url_for('pages.orders') }}">See the ledger</a></div>
+{{ trace(trace_steps) }}
+{% endblock %}

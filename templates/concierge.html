@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% from "macros.html" import trace, card with context %}
+{% block title %}Concierge{% endblock %}
+{% block content %}
+<h1>Name your prey</h1>
+<p class="lead">Describe what you want in plain words. The AI writes the search, Channel3 finds real products, and the AI picks the best. Each hunt uses up to 2 Channel3 credits.</p>
+<form method="post" action="{{ url_for('pages.concierge') }}">
+  <label for="message">What are you hunting for?</label>
+  <textarea id="message" name="message" rows="3" required>{{ message }}</textarea>
+  <button class="btn" type="submit">Hunt it down</button>
+</form>
+{% if error %}<section class="panel bad"><h2>Hunt failed</h2><p>{{ error }}</p></section>{% endif %}
+{% if result %}
+<section class="panel ok"><h2>The concierge says</h2><p>{{ result.reply }}</p></section>
+<div class="grid">{% for p in result.picks %}{{ card(p) }}{% endfor %}</div>
+{% endif %}
+{{ trace(steps_list) }}
+{% endblock %}

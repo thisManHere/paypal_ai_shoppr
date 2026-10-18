@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Concierge{% endblock %} | AI Shopping Concierge</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% block head %}{% endblock %}
+</head>
+<body id="top">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site">
+  <div class="brand"><span aria-hidden="true">☠</span> AI Shopping Concierge</div>
+  <nav aria-label="Main">
+    {% for ep, name, sub in [('pages.concierge','Concierge','the hunt'),('pages.orders','Orders','the ledger'),('pages.status','Diagnostics','the autopsy')] %}
+    <a href="{{ url_for(ep) }}"{% if request.endpoint == ep %} aria-current="page"{% endif %}><b>{{ name }}</b><small>{{ sub }}</small></a>
+    {% endfor %}
+  </nav>
+</header>
+<main id="main">
+{% block content %}{% endblock %}
+</main>
+<footer>Sandbox only. No real money moves. <a href="#top">Back to top ↑</a></footer>
+</body>
+</html>

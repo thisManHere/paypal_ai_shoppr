@@ -43,7 +43,7 @@ def run_self_test(steps):
     steps.append("Test 2 (tool calling): asked for a gift and offered a search_products tool")
     r2 = client.chat.completions.create(
         model=model, tools=PROBE_TOOL, tool_choice="auto",
-        messages=[{"role": "user", "content": "Find me a gardening gift under $50."}])
+        messages=[{"role": "user", "content": "Find me a painting gift under R1000."}])
     calls = r2.choices[0].message.tool_calls
     tool = None
     if calls:

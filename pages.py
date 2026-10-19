@@ -48,7 +48,7 @@ def concierge():
 def checkout():
     """Create a PayPal order, then send the browser to PayPal to approve it."""
     steps = []
-    product = CATALOGS.get(request.form.get("product_id", ""))   # price comes from OUR list, never the form
+    product = CATALOGS.get(request.form.get("product_id", ""))   
     if not product:
         return message("Unknown product", "bad", ["We don't recognise that product. Hunt again first."], code=404)
     source = {"paypal": {"experience_context": {
@@ -69,7 +69,7 @@ def checkout():
  
 @bp.route("/paypal/return")
 def paypal_return():
-    """PayPal sends the buyer back here after they approve. We now capture (take) the payment."""
+    """PayPal sends the buyer back here after they approve. We now capture the payment."""
     order_id = request.args.get("token", "")
     order = ORDERS.get(order_id)
     if not order:
@@ -122,7 +122,7 @@ def status():
                 r = run_self_test(steps)
                 check.update(ok=True, detail=f'The AI said: "{r["hello"]}". Tool request: {r["tool_call"] or "none this time"}')
             elif which == "search":
-                products, _ = search_products("garden gloves", steps, limit=3)
+                products, _ = search_products("drawing canvas", steps, limit=3)
                 check.update(ok=True, detail=f"Found {len(products)} products: " + "; ".join((p["title"] or "?") for p in products))
         except Exception as e:
             check["detail"] = explained(e)

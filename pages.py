@@ -1,18 +1,20 @@
+"""The web pages. Each function below builds one HTML page on the server and sends it to the browser."""
 import os
 import requests
 import openai
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, current_app
 from paypal_client import get_access_token, create_order, capture_order, PayPalError
 from channel3_client import search_products, Channel3Error
 from llm_client import run_self_test, LLMError
 from agent import run_agent
-from catalog import CATALOGS, ORDERS, EVENTS
+from catalog import CATALOG, ORDERS, EVENTS
 
 bp = Blueprint("pages", __name__)
 DEFAULT_MESSAGE = "I need a birthday gift for my mom who loves painting. Budget is R1000."
 
-def explained(e):
-    """Turn any known error into a plain sentence. Unknown errors will then be raised again so we notice them."""
+
+def _explain(e):
+    """Turn any error into a plain sentence. Unknown errors are logged in full and shown with their type."""
     if isinstance(e, (PayPalError, Channel3Error, LLMError)):
         return str(e)
     if isinstance(e, openai.AuthenticationError):
@@ -25,10 +27,13 @@ def explained(e):
         return f"AI call failed: {e}"
     if isinstance(e, requests.RequestException):
         return f"Network problem reaching an outside service: {e}"
-    raise e
+    current_app.logger.exception("Unexpected error")   
+    return f"Unexpected error ({type(e).__name__}): {e}"
 
-def message(title, state, lines, steps=None, code=200):
+
+def _message(title, state, lines, steps=None, code=200):
     return render_template("message.html", title=title, state=state, lines=lines, trace_steps=steps or []), code
+
 
 @bp.route("/", methods=["GET", "POST"])
 def concierge():
@@ -41,16 +46,17 @@ def concierge():
             try:
                 ctx["result"] = run_agent(ctx["message"], ctx["steps_list"])
             except Exception as e:
-                ctx["error"] = explained(e)
+                ctx["error"] = _explain(e)
     return render_template("concierge.html", **ctx)
+
 
 @bp.route("/checkout", methods=["POST"])
 def checkout():
     """Create a PayPal order, then send the browser to PayPal to approve it."""
     steps = []
-    product = CATALOGS.get(request.form.get("product_id", ""))   
+    product = CATALOG.get(request.form.get("product_id", ""))   
     if not product:
-        return message("Unknown product", "bad", ["We don't recognise that product. Hunt again first."], code=404)
+        return _message("Unknown product", "bad", ["We don't recognise that product. Hunt again first."], code=404)
     source = {"paypal": {"experience_context": {
         "brand_name": "AI Shopping Concierge", "user_action": "PAY_NOW",
         "return_url": url_for("pages.paypal_return", _external=True),
@@ -59,21 +65,21 @@ def checkout():
     try:
         order_id, amount = create_order(product, steps, payment_source=source, links_out=links)
     except Exception as e:
-        return message("Checkout failed", "bad", [explained(e)], steps, 400)
+        return _message("Checkout failed", "bad", [_explain(e)], steps, 400)
     ORDERS[order_id] = {"product": product, "amount": amount, "status": "CREATED"}
     approve = next((l["href"] for l in links if l.get("rel") in ("payer-action", "approve")), None)
     if not approve:
-        return message("Checkout failed", "bad", ["PayPal did not return an approval link."], steps, 502)
+        return _message("Checkout failed", "bad", ["PayPal did not return an approval link."], steps, 502)
     return redirect(approve, code=303)
- 
- 
+
+
 @bp.route("/paypal/return")
 def paypal_return():
-    """PayPal sends the buyer back here after they approve. We now capture the payment."""
+    """PayPal sends the buyer back here after they approve. We now capture (take) the payment."""
     order_id = request.args.get("token", "")
     order = ORDERS.get(order_id)
     if not order:
-        return message("Unknown order", "bad", ["We have no record of this order. The server may have restarted."], code=404)
+        return _message("Unknown order", "bad", ["We have no record of this order. The server may have restarted."], code=404)
     steps = []
     if order.get("capture"):
         steps.append("This order was already captured, so we show the saved receipt")
@@ -82,26 +88,30 @@ def paypal_return():
         try:
             result = capture_order(order_id, steps)
         except Exception as e:
-            return message("Payment failed", "bad", [explained(e)], steps, 400)
+            return _message("Payment failed", "bad", [_explain(e)], steps, 400)
         order.update(status=result["status"], capture=result)
-    lines = [f'{order["product"].get("title")}', f'Paid {result["amount"]} {result["currency"]}',f'PayPal status: {result["status"]}', f'Capture ID: {result["capture_id"]}',
+    lines = [f'{order["product"].get("title")}', f'Paid {result["amount"]} {result["currency"]}',
+             f'PayPal status: {result["status"]}', f'Capture ID: {result["capture_id"]}',
              f'Buyer: {result.get("buyer_email") or "n/a"}']
-    return message("Payment complete", "ok", lines, steps)
+    return _message("Payment complete", "ok", lines, steps)
+
 
 @bp.route("/paypal/cancel")
 def paypal_cancel():
-    return message("Payment cancelled", "idle", ["You left PayPal without paying. Nothing was charged."])
- 
- 
+    return _message("Payment cancelled", "idle", ["You left PayPal without paying. Nothing was charged."])
+
+
 @bp.route("/orders")
 def orders():
     rows = [{"order_id": oid, "title": o["product"].get("title"), "amount": o["amount"],
-             "status": o["status"], "webhook_confirmed": o.get("webhook_confirmed", False)}
+             "status": o["status"], "webhook_confirmed": o.get("webhook_confirmed", False),
+             "zapier": o.get("zapier", "not triggered yet")}
             for oid, o in ORDERS.items()]
     return render_template("orders.html", orders=rows[::-1], events=EVENTS[::-1][:20])
- 
- 
+
+
 CHECK_NAMES = {"paypal": "PayPal login", "ai": "AI model", "search": "Product search"}
+
 
 @bp.route("/status", methods=["GET", "POST"])
 def status():
@@ -122,8 +132,8 @@ def status():
                 r = run_self_test(steps)
                 check.update(ok=True, detail=f'The AI said: "{r["hello"]}". Tool request: {r["tool_call"] or "none this time"}')
             elif which == "search":
-                products, _ = search_products("drawing canvas", steps, limit=3)
+                products, _ = search_products("garden gloves", steps, limit=3)
                 check.update(ok=True, detail=f"Found {len(products)} products: " + "; ".join((p["title"] or "?") for p in products))
         except Exception as e:
-            check["detail"] = explained(e)
+            check["detail"] = _explain(e)
     return render_template("status.html", keys=keys, check=check)

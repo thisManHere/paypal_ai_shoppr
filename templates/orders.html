@@ -10,7 +10,7 @@
 {% for o in orders %}
 <article class="panel {{ 'ok' if o.webhook_confirmed else 'idle' }}">
   <h3>{{ o.title }}</h3>
-  <p>{{ o.amount }} USD | PayPal status: {{ o.status }} | Webhook: <b>{{ 'CONFIRMED' if o.webhook_confirmed else 'not yet' }}</b></p>
+  <p>{{ o.amount }} ZAR | PayPal status: {{ o.status }} | Webhook: <b>{{ 'CONFIRMED' if o.webhook_confirmed else 'not yet' }}</b></p>
   <p class="meta">Order {{ o.order_id }}</p>
 </article>
 {% else %}<p class="empty">No orders yet. Visit the Concierge and buy something.</p>{% endfor %}

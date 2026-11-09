@@ -73,7 +73,7 @@ def create_order(product, steps):
             "purchase_units": [{
                 "reference_id": str(product["id"])[:200],
                 "description": (product.get("title") or "Item")[:127],
-                "amount": {"currency_code": "USD", "value": str(amount)}
+                "amount": {"currency_code": "ZAR", "value": str(amount)}
                 }]
             }
     

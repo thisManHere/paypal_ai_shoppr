@@ -14,12 +14,12 @@
   {% if p.reason %}<p class="why"><b>Why:</b> {{ p.reason }}</p>{% endif %}
   <div class="actions">
     {% if p.url %}<a class="btn ghost" href="{{ p.url }}" target="_blank" rel="noopener">View at store</a>{% endif %}
-    {% if p.price is not none and (not p.currency or p.currency|upper == 'USD') %}
+    {% if p.price is not none and (not p.currency or p.currency|upper == 'ZAR') %}
     <form method="post" action="{{ url_for('pages.checkout') }}">
       <input type="hidden" name="product_id" value="{{ p.id }}">
       <button class="btn" type="submit">Pay with PayPal</button>
     </form>
-    {% else %}<p class="meta">Checkout supports USD items only.</p>{% endif %}
+    {% else %}<p class="meta">Checkout supports ZAR items only.</p>{% endif %}
   </div>
 </article>
 {% endmacro %}

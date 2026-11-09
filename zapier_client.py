@@ -14,7 +14,7 @@ def notify_zapier(order_id, order):
         "store": product.get("store"),
         "product_url": product.get("url"),
         "amount": order.get("amount"),
-        "currency": "USD",
+        "currency": "ZAR",
         "capture_id": capture.get("capture_id"),
         "buyer_email": capture.get("buyer_email")
     }

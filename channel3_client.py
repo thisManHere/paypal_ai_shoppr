@@ -1,8 +1,10 @@
 import os
 import requests
+from decimal import Decimal, InvalidOperation
 from catalog import CATALOGS
 
 SEARCH_URL = "https://api.trychannel3.com/v1/search"
+USD_TO_ZAR = Decimal("18.5")
 
 class Channel3Error(Exception):
     pass
@@ -13,11 +15,32 @@ def the_price(offer):
         return p.get("price"), p.get("currency")
     return p, offer.get("currency")
 
+
+def to_zar_price(price, currency):
+    """Convert Channel3 prices to ZAR so the app behaves consistently in South Africa."""
+    if price is None:
+        return None, "ZAR"
+    try:
+        amount = Decimal(str(price)).quantize(Decimal("0.01"))
+    except (InvalidOperation, TypeError):
+        return None, "ZAR"
+
+    code = (currency or "USD").upper()
+    if code == "ZAR":
+        return float(amount), "ZAR"
+    if code in {"USD", "US$", "$"}:
+        converted = (amount * USD_TO_ZAR).quantize(Decimal("0.01"))
+        return float(converted), "ZAR"
+
+    return float(amount), "ZAR"
+
+
 def normalize(p):
     """Turn Channel3's product into a small, predictable shape our app can rely on."""
     offers = p.get("offers") or []
     best = offers[0] if offers else {}
     price, currency = the_price(best)
+    price, currency = to_zar_price(price, currency)
     image = p.get("image_url")
     if not image:
         imgs = p.get("images") or []
